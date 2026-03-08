@@ -45,7 +45,7 @@ impl AccountVaultDelta {
 
     /// Returns the fungible assets that increased.
     #[wasm_bindgen(js_name = "addedFungibleAssets")]
-    pub fn added_fungible_assets(&self) -> Vec<FungibleAsset> {
+    pub fn added_fungible_assets(&self) -> Result<Vec<FungibleAsset>, JsValue> {
         self.0
             .fungible()
             .iter()
@@ -56,7 +56,7 @@ impl AccountVaultDelta {
 
     /// Returns the fungible assets that decreased.
     #[wasm_bindgen(js_name = "removedFungibleAssets")]
-    pub fn removed_fungible_assets(&self) -> Vec<FungibleAsset> {
+    pub fn removed_fungible_assets(&self) -> Result<Vec<FungibleAsset>, JsValue> {
         self.0
             .fungible()
             .iter()

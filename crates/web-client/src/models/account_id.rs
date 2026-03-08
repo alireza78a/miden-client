@@ -92,9 +92,10 @@ pub enum AccountInterface {
 impl AccountId {
     /// Builds an account ID from its hex string representation.
     #[wasm_bindgen(js_name = "fromHex")]
-    pub fn from_hex(hex: &str) -> AccountId {
-        let native_account_id = NativeAccountId::from_hex(hex).unwrap();
-        AccountId(native_account_id)
+    pub fn from_hex(hex: &str) -> Result<AccountId, JsValue> {
+        let native_account_id = NativeAccountId::from_hex(hex)
+            .map_err(|err| JsValue::from_str(&format!("Invalid account ID hex: {err}")))?;
+        Ok(AccountId(native_account_id))
     }
 
     /// Returns true if the ID refers to a faucet.

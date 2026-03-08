@@ -18,11 +18,12 @@ pub struct FungibleAsset(FungibleAssetNative);
 impl FungibleAsset {
     /// Creates a fungible asset for the given faucet and amount.
     #[wasm_bindgen(constructor)]
-    pub fn new(faucet_id: &AccountId, amount: u64) -> FungibleAsset {
+    pub fn new(faucet_id: &AccountId, amount: u64) -> Result<FungibleAsset, JsValue> {
         let native_faucet_id: NativeAccountId = faucet_id.into();
-        let native_asset = FungibleAssetNative::new(native_faucet_id, amount).unwrap();
+        let native_asset = FungibleAssetNative::new(native_faucet_id, amount)
+            .map_err(|err| JsValue::from_str(&format!("Invalid fungible asset: {err}")))?;
 
-        FungibleAsset(native_asset)
+        Ok(FungibleAsset(native_asset))
     }
 
     /// Returns the faucet account that minted this asset.

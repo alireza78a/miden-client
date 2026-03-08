@@ -13,19 +13,21 @@ pub struct Word(NativeWord);
 impl Word {
     /// Creates a word from four u64 values.
     #[wasm_bindgen(constructor)]
-    pub fn new(u64_vec: Vec<u64>) -> Word {
-        let fixed_array_u64: [u64; 4] = u64_vec.try_into().unwrap();
+    pub fn new(u64_vec: Vec<u64>) -> Result<Word, JsValue> {
+        let fixed_array_u64: [u64; 4] = u64_vec.try_into().map_err(|v: Vec<u64>| {
+            JsValue::from_str(&format!("Word requires exactly 4 u64 values, got {}", v.len()))
+        })?;
 
         let native_felt_vec: [NativeFelt; 4] = fixed_array_u64
             .iter()
             .map(|&v| NativeFelt::new(v))
             .collect::<Vec<NativeFelt>>()
             .try_into()
-            .unwrap();
+            .expect("4 u64 values always convert to 4 Felts");
 
         let native_word: NativeWord = native_felt_vec.into();
 
-        Word(native_word)
+        Ok(Word(native_word))
     }
 
     /// Creates a Word from a hex string.
@@ -41,17 +43,22 @@ impl Word {
     /// Creates a word from four field elements.
     #[wasm_bindgen(js_name = "newFromFelts")]
     #[allow(clippy::needless_pass_by_value)]
-    pub fn new_from_felts(felt_vec: Vec<Felt>) -> Word {
+    pub fn new_from_felts(felt_vec: Vec<Felt>) -> Result<Word, JsValue> {
+        let len = felt_vec.len();
         let native_felt_vec: [NativeFelt; 4] = felt_vec
             .iter()
             .map(|felt: &Felt| felt.into())
             .collect::<Vec<NativeFelt>>()
             .try_into()
-            .unwrap();
+            .map_err(|_| {
+                JsValue::from_str(&format!(
+                    "Word requires exactly 4 field elements, got {len}"
+                ))
+            })?;
 
         let native_word: NativeWord = native_felt_vec.into();
 
-        Word(native_word)
+        Ok(Word(native_word))
     }
 
     /// Returns the hex representation of the word.

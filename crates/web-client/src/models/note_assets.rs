@@ -20,15 +20,20 @@ pub struct NoteAssets(NativeNoteAssets);
 impl NoteAssets {
     /// Creates a new asset list for a note.
     #[wasm_bindgen(constructor)]
-    pub fn new(assets_array: Option<Vec<FungibleAsset>>) -> NoteAssets {
+    pub fn new(assets_array: Option<Vec<FungibleAsset>>) -> Result<NoteAssets, JsValue> {
         let assets = assets_array.unwrap_or_default();
         let native_assets: Vec<NativeAsset> = assets.into_iter().map(Into::into).collect();
-        NoteAssets(NativeNoteAssets::new(native_assets).unwrap())
+        let note_assets = NativeNoteAssets::new(native_assets)
+            .map_err(|err| JsValue::from_str(&format!("Invalid note assets: {err}")))?;
+        Ok(NoteAssets(note_assets))
     }
 
     /// Adds a fungible asset to the collection.
-    pub fn push(&mut self, asset: &FungibleAsset) {
-        self.0.add_asset(asset.into()).unwrap();
+    pub fn push(&mut self, asset: &FungibleAsset) -> Result<(), JsValue> {
+        self.0
+            .add_asset(asset.into())
+            .map_err(|err| JsValue::from_str(&format!("Failed to add asset: {err}")))?;
+        Ok(())
     }
 
     /// Returns all fungible assets contained in the note.
